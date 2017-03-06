@@ -4,6 +4,7 @@ import countries from './countries';
 import cities from './cities';
 import companies from './companies';
 import messages from './messages';
+import notes from './notes';
 
 export default {
   ...tags,
@@ -12,4 +13,5 @@ export default {
   ...cities,
   ...companies,
   ...messages,
+  ...notes,
 };
