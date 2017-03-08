@@ -3,43 +3,57 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Card, Col, Row, Input, Icon } from 'antd';
 import styled from 'styled-components';
-import easydate from 'easydate';
+import moment from 'moment';
 import { loadNotes } from '../../actions/notes';
-import { Header, HeaderLeft, HeaderRight } from '../Header';
-
-export const Search = Input.Search;
+import { loadPeople } from '../../actions/people';
+import { loadCompanies } from '../../actions/companies';
+import { TitleIcon, Header, HeaderLeft, HeaderRight, Title, Search } from '../widgets';
+import Avatar from '../Avatar';
 
 export const TitleIconElt = styled(Icon)`
   margin: 0.5em;
 `;
 
-export const Title = styled.h2`
-`;
-
 export const CardElt = styled(Card)`
   margin: 5px;
   background: whitesmoke !important;
-  minWidth: 50px !important;
-  fontSize: 1em !important;
+  font-size: 1em !important;
   font-weight: bold !important;
   &:hover {
   	background: white !important;
-  	boxShadow: 5px 5px 20px 2px black !important;
+  	box-shadow: 5px 5px 20px 2px black !important;
   }
 `;
 
 export const FooterElt = styled.div`
   font-weight: normal !important;
+  display: flex;
 `;
 
-export const Footer = ({ note }) => {
+export const Footer = ({ note, person, entity }) => {
+  if (!person) return null;
+  const author = `${person.firstName} ${person.lastName}`;
+  const dateFormat = moment(note.createdAt).format('dddd, MMMM Do YYYY');
   return (
   	<FooterElt>
     {
       [
-        note.authorId,
-        (<br key={note._id} />),
-        Date(easydate('d-M-Y', Notes.createdAt)),
+        <Avatar
+          key={dateFormat}
+          name={entity && entity.name ? entity.name : "M"}
+          color={entity && entity.avatar  ? entity.avatar.color : "darkgrey"}
+          showTooltip
+        />,
+        entity.name,
+        <br key={note._id} />,
+        dateFormat,
+        <Avatar
+          style={{ fontSize: '10em' }}
+          key={note._id, author}
+          name={author}
+          color={person.avatar ? person.avatar.color : "darkgrey"}
+          showTooltip
+        />,
       ]
     }
     </FooterElt>
@@ -50,26 +64,11 @@ Footer.propTypes = {
   note: PropTypes.object.isRequired,
 }
 
-export const HeaderNotes = () =>
-  <Header>
-    <HeaderLeft>
-      <TitleIconElt type="pushpin-o" />
-      <Title>Notes</Title>
-    </HeaderLeft>
-    <HeaderRight>
-      <Search
-        size="large"
-        placeholder="Enter your filter"
-      />
-    </HeaderRight>
-  </Header>
-;
-
-export const CardContent = ({ note }) =>
+export const CardContent = ({ note, person, entity }) =>
   <div>
     {note.content}
     <hr />
-    <Footer note={note} />
+    <Footer note={note} person={person} entity={entity} />
   </div>
 ;
 
@@ -79,21 +78,40 @@ CardContent.propTypes = {
 
 export class Notes extends Component {
   componentWillMount() {
-    const { loadNotes } = this.props;
+    const { loadNotes, loadPeople, loadCompanies } = this.props;
     loadNotes();
+    loadPeople();
+    loadCompanies();
+  }
+
+  findEntity(entityType, entityId) {
+  	const { companies, people } = this.props;
+    const entity = entityType === 'person' ? people.data[entityId] : companies.data[entityId];
+    console.log('type/entity-->', entityType ,entity);
+  	return entity ? entity : '';
   }
 
   render() {
-    const { notes } = this.props;
+    const { notes, people, companies } = this.props;
     return(
       <div>
-        <HeaderNotes />
-        <Row style={{ display: 'flex !important'}} >
+        <Header>
+            <HeaderLeft>
+              <TitleIcon name="pushpin-o" />
+              <Title title='Notes' />
+            </HeaderLeft>
+            <HeaderRight>
+            </HeaderRight>
+          </Header>
+        <Row type="flex" justify="end" >
         {
           notes.data.map(note => (
-            <Col key={note._id} sm={24} md={12} lg={8} >
+            <Col key={note._id} sm={24} md={12} lg={8}>
               <CardElt key={note._id} bordered={false}>
-                <CardContent note={note} />
+                <CardContent
+                  note={note}
+                  person={people.data[note.authorId]}
+                  entity={this.findEntity(note.entityType, note.entityId)} />
               </CardElt>
             </Col>))
         }
@@ -106,11 +124,15 @@ export class Notes extends Component {
 Notes.propTypes = {
   notes: PropTypes.object.isRequired,
   loadNotes: PropTypes.func.isRequired,
+  loadPeople: PropTypes.func.isRequired,
+  loadCompanies: PropTypes.func.isRequired,
 }
 
 const mapStateToProps = state => state;
 const mapDispatchToProps = dispatch => ({
   loadNotes: bindActionCreators(loadNotes, dispatch),
+  loadPeople: bindActionCreators(loadPeople, dispatch),
+  loadCompanies: bindActionCreators(loadCompanies, dispatch),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Notes);

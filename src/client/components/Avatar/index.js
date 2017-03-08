@@ -6,6 +6,7 @@ import R from 'ramda';
 export const Circle = styled.div`
   display: flex;
   justify-content: center;
+  margin: 5px
   align-items: center;
   background-color: ${props => props.color};
   width: 36px;

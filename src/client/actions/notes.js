@@ -1,5 +1,5 @@
-export const LOAD_NOTES = 'EVTX:SERVER:NOTES:LOAD';
-export const NOTES_LOADED = 'NOTES:LOADED';
+export const LOAD_NOTES = 'EvtX:Server:notes:load';
+export const NOTES_LOADED = 'notes:loaded';
 
 export const loadNotes = () => (dispatch, getState) => {
   const { notes } = getState();
@@ -10,4 +10,3 @@ export const loadNotes = () => (dispatch, getState) => {
     });
   }
 };
- 

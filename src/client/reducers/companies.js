@@ -1,7 +1,20 @@
 import R from 'ramda';
-import { makeAll, make, FILTER_COMPANY_LIST, ADD_COMPANY, COMPANY_ADDED, COMPANIES_LOADED } from '../actions/companies';
+import moment from 'moment';
+import { FILTER_COMPANY_LIST, ADD_COMPANY, COMPANY_ADDED, COMPANIES_LOADED } from '../actions/companies';
 
+const make = (company) => {
+  const updatedCompany = {
+    ...company, 
+    typeName: 'company',
+    createdAt: moment(company.createdAt),
+  };
+  if (company.updatedAt) updatedCompany.updatedAt = moment(company.updatedAt);
+  return updatedCompany;
+}
+
+const makeAll = R.map(make);
 const makeCompanies = R.compose(R.fromPairs, R.map(c => [c._id, c]), makeAll);
+
 const companies = (state = { data: { } }, action) => {
   switch (action.type) {
     case FILTER_COMPANY_LIST:
